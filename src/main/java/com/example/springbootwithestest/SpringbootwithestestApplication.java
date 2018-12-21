@@ -17,7 +17,7 @@ public class SpringbootwithestestApplication  {
 	}*/
 
 	public static void main(String[] args) {
-        System.out.println("test ESTEST");
+        System.out.println("test——ESTEST");
 	    SpringApplication.run(SpringbootwithestestApplication.class, args);
 	}
 }
