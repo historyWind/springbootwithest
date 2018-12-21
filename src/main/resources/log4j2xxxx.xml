@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="OFF">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %M() @%L - %msg%n"/>
+        </Console>
+        <!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，这个也挺有用的，适合临时测试用-->
+        <File name="ERROR" fileName="logs/error.log" append="false">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %M() @%L - %msg%n"/>
+        </File>
+        <File name="INFO" fileName="logs/info.log" append="false">
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %M() @%L - %msg%n"/>
+        </File>
+        <File name="DEBUG" fileName="logs/debug.log" append="false">
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %M() @%L - %msg%n"/>
+        </File>
+        <!--这个会打印出所有的信息(如果没有配置level，会默认继承root的level)，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <RollingFile name="RollingFile" fileName="logs/app.log"
+                     filePattern="log/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz" >
+            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %M() @%L - %msg%n"/>
+            <policies>
+                <!--
+                TimeBasedTriggeringPolicy：这个配置要和filePattern结合使用，比如：filePattern中的命名规则是${FILE_NAME}-%d{yyyy-MM-ddHH-mm}-%i，
+                最小的时间粒度是mm，即分钟，而TimeBasedTriggeringPolicy指定的size是1，结合起来就是每1分钟生成一个新文件。
+                同理，如果要每个小时生成一个文件，则改成%d{yyyy-MM-dd HH}，最小粒度为小时
+                -->
+                <!--<TimeBasedTriggeringPolicy interval=""/>-->
+                <!--size大小设置，基于指定文件大小的滚动策略，size属性用来定义每个日志文件的大小-->
+                <SizeBasedTriggeringPolicy size="4000KB"/>
+            </policies>
+            <!--用来指定同一个文件夹下最多有几个日志文件时开始删除最旧的，创建新的(通过max属性)
+            DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </Appenders>
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效-->
+    <Loggers>
+        <!--建立一个默认的root的logger-->
+        <!--root的level与ThresholdFilter的level，在运行时取的是二者中的高级别的，如果ThresholdFilter的level没有配置，那么会默认使用root的level-->
+        <Root level="INFO">
+            <appender-ref ref="ERROR" />
+            <appender-ref ref="RollingFile"/>
+            <appender-ref ref="Console"/>
+            <appender-ref ref="DEBUG"/>
+            <appender-ref ref="INFO"/>
+        </Root>
+        <!--logger的name对应的是：java代码中的Loogger，private Logger logger = LogManager.getLogger(LogTestController.class);所以到这里的name应该是类名。
+            如果additivity="true"，那么会同时满足root和这个Logger的，INFO会被打印二次；如果additivity="false"，则只会执行当前logger。
+            注意name属性也是有报的概念的：如果name="com.example.springbootwithestest.esTestOne.controller",那么name只要是com.example.springbootwithestest.esTestOne.controller下级（由.区分上下集），
+            也同样会执行这个Logger的
+        -->
+        <Logger name="com.example.springbootwithestest.esTestOne.controller.LogTestController" additivity="false">
+            <appender-ref ref="INFO"/>
+        </Logger>
+    </Loggers>
+</Configuration>
